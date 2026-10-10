@@ -1,0 +1,10 @@
+{
+  "keybroker": {
+    "command": "${HOME}/.keybroker/bin/keybroker",
+    "args": [
+      "mcp",
+      "--client",
+      "claude-code"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "description": "Route Bash through Keybroker when the app is running; stop pasted API keys before Claude sees them",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"$HOME/.keybroker/bin/keybroker\" hook session-start", "timeout": 10 }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"$HOME/.keybroker/bin/keybroker\" hook prompt-guard", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}

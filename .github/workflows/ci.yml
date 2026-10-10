@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: |
+          for p in core proxy agent-api cli; do npx tsc -p packages/$p; done
+          (cd app && npx tsc --noEmit -p tsconfig.json)
+      - run: pnpm test

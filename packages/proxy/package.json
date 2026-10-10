@@ -1,0 +1,13 @@
+{
+  "name": "@keybroker/proxy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@keybroker/core": "workspace:*",
+    "mockttp": "^4.6.3",
+    "undici": "^8.11.2"
+  }
+}

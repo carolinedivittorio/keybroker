@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Release builds (Developer ID). V8 and the bundled CLI's JavaScriptCore need JIT.
+       Deliberately no get-task-allow (debugger attach), no allow-dyld-environment-variables
+       (DYLD_INSERT_LIBRARIES) and no disable-library-validation. -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+</dict>
+</plist>

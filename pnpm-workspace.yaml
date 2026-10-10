@@ -1,0 +1,10 @@
+packages:
+  - packages/*
+  - app
+
+onlyBuiltDependencies:
+  - electron
+  - esbuild
+
+patchedDependencies:
+  mockttp@4.6.3: patches/mockttp@4.6.3.patch

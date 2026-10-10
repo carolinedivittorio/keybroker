@@ -1,0 +1,46 @@
+{
+  "manifest_version": "0.2",
+  "name": "keybroker",
+  "display_name": "Keybroker",
+  "version": "0.1.0",
+  "description": "Use your API keys without Claude ever seeing them.",
+  "long_description": "Keybroker keeps your API keys in an encrypted vault on this Mac and attaches them to requests for the hosts you allow. Claude can list your configured APIs, propose new ones (you add the key in the Keybroker app, never in chat), and make authenticated requests. Requires the Keybroker app to be running.",
+  "author": {
+    "name": "Keybroker"
+  },
+  "icon": "icon.png",
+  "server": {
+    "type": "binary",
+    "entry_point": "server/launch.sh",
+    "mcp_config": {
+      "command": "/bin/sh",
+      "args": [
+        "${__dirname}/server/launch.sh"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "list_credentials",
+      "description": "List the APIs Keybroker can authenticate for you (never returns key values)"
+    },
+    {
+      "name": "propose_credential",
+      "description": "Propose a new API credential; you add the key in the Keybroker app"
+    },
+    {
+      "name": "credential_status",
+      "description": "Check on a pending proposal"
+    },
+    {
+      "name": "http_request",
+      "description": "Make an HTTP request with the stored key attached for that host"
+    }
+  ],
+  "compatibility": {
+    "platforms": [
+      "darwin"
+    ]
+  },
+  "license": "MIT"
+}

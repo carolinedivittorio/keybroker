@@ -1,0 +1,8 @@
+{
+  "name": "keybroker",
+  "version": "0.1.0",
+  "description": "Use your API keys without Claude ever seeing them. Routes Bash through the Keybroker proxy, adds the keybroker MCP tools, and blocks pasted keys.",
+  "author": {
+    "name": "Keybroker"
+  }
+}

@@ -1,0 +1,13 @@
+diff --git a/dist/server/mockttp-server.js b/dist/server/mockttp-server.js
+index db33b85ef89fdf0ac930728ead1d5ee5d261f014..c9438bf74482d89584bed46a4c5e3f09acd08a23 100644
+--- a/dist/server/mockttp-server.js
++++ b/dist/server/mockttp-server.js
+@@ -97,7 +97,7 @@ class MockttpServer extends mockttp_1.AbstractMockttp {
+                 });
+             if (this.debug)
+                 console.log(`Starting mock server on port ${port}`);
+-            this.server.listen(port);
++            this.server.listen(port, "127.0.0.1"); // keybroker: loopback only
+         });
+         // Handle & report client request errors
+         this.server.on('clientError', this.handleInvalidHttp1Request.bind(this));
