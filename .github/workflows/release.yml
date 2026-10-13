@@ -59,17 +59,20 @@ jobs:
 
       - name: Verify what users will download
         run: |
-          # Ticket checks talk to Apple's servers; retry brief network blips.
+          # These checks talk to Apple's servers, so retry brief network blips.
           retry() { for i in 1 2 3; do "$@" && return 0; echo "retrying in 15s ($i/3)"; sleep 15; done; return 1; }
+          # stapler validate re-checks an already-stapled ticket against Apple's ticket server.
+          # Gatekeeper (spctl) is the strict check; a ticket-server outage only warns.
+          recheck_ticket() { retry xcrun stapler validate "$1" || echo "::warning::Couldn't reach Apple to re-check the stapled ticket on $1"; }
           app=$(ls -d app/dist/mac-arm64/Keybroker.app)
           dmg=$(ls app/dist/Keybroker-*.dmg)
           codesign --verify --deep --strict --verbose=2 "$app"
           retry spctl --assess --type execute --verbose "$app"
-          retry xcrun stapler validate "$app"
+          recheck_ticket "$app"
           # Check the disk image as a browser download would be checked.
           xattr -w com.apple.quarantine "0081;$(printf %x "$(date +%s)");Safari;" "$dmg"
           retry spctl --assess --type open --context context:primary-signature --verbose "$dmg"
-          retry xcrun stapler validate "$dmg"
+          recheck_ticket "$dmg"
 
       - name: Upload to a draft release
         run: |
