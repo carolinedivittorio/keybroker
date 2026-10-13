@@ -59,15 +59,17 @@ jobs:
 
       - name: Verify what users will download
         run: |
+          # Ticket checks talk to Apple's servers; retry brief network blips.
+          retry() { for i in 1 2 3; do "$@" && return 0; echo "retrying in 15s ($i/3)"; sleep 15; done; return 1; }
           app=$(ls -d app/dist/mac-arm64/Keybroker.app)
           dmg=$(ls app/dist/Keybroker-*.dmg)
           codesign --verify --deep --strict --verbose=2 "$app"
-          spctl --assess --type execute --verbose "$app"
-          xcrun stapler validate "$app"
+          retry spctl --assess --type execute --verbose "$app"
+          retry xcrun stapler validate "$app"
           # Check the disk image as a browser download would be checked.
           xattr -w com.apple.quarantine "0081;$(printf %x "$(date +%s)");Safari;" "$dmg"
-          spctl --assess --type open --context context:primary-signature --verbose "$dmg"
-          xcrun stapler validate "$dmg"
+          retry spctl --assess --type open --context context:primary-signature --verbose "$dmg"
+          retry xcrun stapler validate "$dmg"
 
       - name: Upload to a draft release
         run: |
