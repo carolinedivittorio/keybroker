@@ -36,21 +36,43 @@ jobs:
 
       - run: pnpm test
 
-      - name: Build, sign, notarize and upload
+      - name: Build, sign and notarize the app
         run: pnpm --filter keybroker release
         env:
           # Developer ID Application certificate + key, exported as .p12 and base64-encoded.
           CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_P12_PASSWORD }}
-          # Notarization.
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify the signature and notarization
+      # electron-builder notarizes the app; the .dmg people download needs its own ticket.
+      - name: Notarize and staple the disk image
+        run: |
+          dmg=$(ls app/dist/Keybroker-*.dmg)
+          xcrun notarytool submit "$dmg" --apple-id "$APPLE_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          xcrun stapler staple "$dmg"
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Verify what users will download
         run: |
           app=$(ls -d app/dist/mac-arm64/Keybroker.app)
+          dmg=$(ls app/dist/Keybroker-*.dmg)
           codesign --verify --deep --strict --verbose=2 "$app"
           spctl --assess --type execute --verbose "$app"
           xcrun stapler validate "$app"
+          # Check the disk image as a browser download would be checked.
+          xattr -w com.apple.quarantine "0081;$(printf %x "$(date +%s)");Safari;" "$dmg"
+          spctl --assess --type open --context context:primary-signature --verbose "$dmg"
+          xcrun stapler validate "$dmg"
+
+      - name: Upload to a draft release
+        run: |
+          cd app/dist
+          gh release create "$GITHUB_REF_NAME" --draft --title "Keybroker ${GITHUB_REF_NAME#v}" --generate-notes \
+            Keybroker-*.dmg Keybroker-*.zip Keybroker-*.zip.blockmap latest-mac.yml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

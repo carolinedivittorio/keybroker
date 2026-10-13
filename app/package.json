@@ -13,7 +13,7 @@
     "dist": "pnpm run build:all && electron-builder --mac dir -c.mac.identity=- -c.mac.notarize=false -c.mac.entitlements=build/entitlements.adhoc.plist -c.mac.entitlementsInherit=build/entitlements.adhoc.plist",
     "ui": "vite --config vite.preview.config.ts",
     "build:all": "pnpm --filter @keybroker/cli build && pnpm run --dir .. desktop-extension && electron-vite build",
-    "release": "pnpm run build:all && electron-builder --mac --publish always"
+    "release": "pnpm run build:all && electron-builder --mac --publish never"
   },
   "dependencies": {
     "@keybroker/agent-api": "workspace:*",
@@ -112,7 +112,8 @@
     },
     "npmRebuild": false,
     "dmg": {
-      "title": "Keybroker ${version}"
+      "title": "Keybroker ${version}",
+      "sign": true
     },
     "artifactName": "Keybroker-${version}-${arch}.${ext}",
     "publish": [
