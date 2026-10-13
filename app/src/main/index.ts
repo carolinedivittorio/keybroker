@@ -9,6 +9,7 @@ import { generateCA, startProxy, type ProxyEvent, type ProxyEventDetail, type Ru
 import type { BrokerStatus, CredentialInput, CredentialView } from '../shared/api';
 import { createBroker } from './agent';
 import { APP_PROXY_PORT, ensureRelay, RELAY_PORT } from './relay';
+import { checkForUpdates, installUpdate, startUpdates, updateState } from './updates';
 import { ensureTools, INTEGRATION_NAMES, listIntegrations, setIntegration } from './integrations';
 
 // Dev builds get their own name, which means their own vault and Keychain entry. They are
@@ -196,6 +197,10 @@ function updateTrayMenu() {
       { label: 'Open Keybroker…', click: openWindow },
       { label: 'Copy shell setup command', click: () => clipboard.writeText(`source ${envFile}`) },
       { type: 'separator' },
+      updateState().status === 'ready'
+        ? { label: `Restart to update to ${updateState().version}`, click: installUpdate }
+        : { label: 'Check for updates', enabled: app.isPackaged, click: checkForUpdates },
+      { type: 'separator' },
       { label: 'Quit Keybroker', role: 'quit' },
     ]),
   );
@@ -270,6 +275,8 @@ function registerIpc() {
       return { ok: false, error: (err as Error).message };
     }
   });
+  ipcMain.handle('update:state', () => updateState());
+  ipcMain.handle('update:install', () => installUpdate());
   ipcMain.handle('copy', (_e, text: string) => clipboard.writeText(text));
   ipcMain.handle('open-external', (_e, url: string) => {
     if (/^https:\/\//.test(url)) return shell.openExternal(url);
@@ -345,6 +352,10 @@ if (!IS_DEV_BUILD && debugSwitch) {
     tray = new Tray(icon);
     tray.setToolTip('Keybroker');
     updateTrayMenu();
+    startUpdates((state) => {
+      window?.webContents.send('update:state', state);
+      updateTrayMenu();
+    });
     openWindow();
   });
 

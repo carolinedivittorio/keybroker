@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity as ActivityIcon, AlertTriangle, KeyRound, Plug, Sparkles } from 'lucide-react';
+import { Activity as ActivityIcon, AlertTriangle, ArrowUpCircle, KeyRound, Plug, Sparkles } from 'lucide-react';
 import type { Preset } from '@keybroker/core';
-import type { BrokerStatus, CredentialView, Proposal, ProxyEvent } from '../../shared/api';
+import type { BrokerStatus, CredentialView, Proposal, ProxyEvent, UpdateState } from '../../shared/api';
 import { CredentialForm } from './CredentialForm';
 import { Activity } from './tabs/Activity';
 import { Connections } from './tabs/Connections';
@@ -35,6 +35,7 @@ export function App() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [reviewing, setReviewing] = useState<Proposal>();
   const [tab, setTab] = useState<Tab>('connections');
+  const [update, setUpdate] = useState<UpdateState>({ status: 'idle' });
 
   const reload = useCallback(async () => {
     setCredentials(await api.listCredentials());
@@ -55,9 +56,12 @@ export function App() {
     };
     loadProposals();
     const offProposals = api.onProposalsChanged(loadProposals);
+    api.updateState().then(setUpdate);
+    const offUpdate = api.onUpdateState(setUpdate);
     return () => {
       offEvents();
       offProposals();
+      offUpdate();
     };
   }, [reload]);
 
@@ -100,6 +104,21 @@ export function App() {
             <span>
               <strong>Development build.</strong> Other programs on this Mac can read keys stored here. Use test keys only.
             </span>
+          </div>
+        )}
+
+        {update.status === 'ready' && (
+          <div className="glass flex items-center gap-3 rounded-xl px-4 py-3">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/12 text-primary">
+              <ArrowUpCircle className="size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="font-medium">Keybroker {update.version} is ready</div>
+              <div className="text-sm text-muted-foreground">Restart to finish updating. It also installs the next time you quit.</div>
+            </div>
+            <Button size="sm" onClick={() => api.installUpdate()}>
+              Restart to update
+            </Button>
           </div>
         )}
 

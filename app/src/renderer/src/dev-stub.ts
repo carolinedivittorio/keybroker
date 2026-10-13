@@ -40,6 +40,9 @@ const stub: KeybrokerApi = {
   ],
   setIntegration: async () => ({ ok: true }),
   pauseIntegration: async () => {},
+  updateState: async () => (location.hash === '#update' ? { status: 'ready', version: '0.2.0' } : { status: 'idle' }),
+  onUpdateState: () => () => {},
+  installUpdate: async () => {},
   copy: async () => {},
   openExternal: async () => {},
 };

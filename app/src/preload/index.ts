@@ -25,6 +25,13 @@ const api: KeybrokerApi = {
   integrations: () => ipcRenderer.invoke('integrations:list'),
   setIntegration: (id, install) => ipcRenderer.invoke('integrations:set', id, install),
   pauseIntegration: (id, paused) => ipcRenderer.invoke('integrations:pause', id, paused),
+  updateState: () => ipcRenderer.invoke('update:state'),
+  onUpdateState: (callback) => {
+    const listener = (_e: unknown, state: Parameters<typeof callback>[0]) => callback(state);
+    ipcRenderer.on('update:state', listener);
+    return () => ipcRenderer.removeListener('update:state', listener);
+  },
+  installUpdate: () => ipcRenderer.invoke('update:install'),
   copy: (text) => ipcRenderer.invoke('copy', text),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
 };

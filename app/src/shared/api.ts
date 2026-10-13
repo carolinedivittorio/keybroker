@@ -37,6 +37,12 @@ export interface IntegrationView {
   removeHint?: string;
 }
 
+export interface UpdateState {
+  status: 'idle' | 'checking' | 'downloading' | 'ready' | 'error';
+  version?: string;
+  error?: string;
+}
+
 export type CredentialInput = Omit<Credential, 'createdAt' | 'updatedAt'>;
 
 export interface KeybrokerApi {
@@ -57,6 +63,9 @@ export interface KeybrokerApi {
   integrations(): Promise<IntegrationView[]>;
   setIntegration(id: string, install: boolean): Promise<{ ok: true } | { ok: false; error: string }>;
   pauseIntegration(id: string, paused: boolean): Promise<void>;
+  updateState(): Promise<UpdateState>;
+  onUpdateState(callback: (state: UpdateState) => void): () => void;
+  installUpdate(): Promise<void>;
   copy(text: string): Promise<void>;
   openExternal(url: string): Promise<void>;
 }

@@ -282,6 +282,24 @@ export async function setIntegration(id: string, install: boolean) {
  * configs never point inside the app bundle (which is replaced on update). Sources are the
  * bundle's Resources when packaged, or the repo in dev.
  */
+/**
+ * Claude Code keeps its own copy of the plugin per version. When an app update ships a new
+ * plugin version, pull it into Claude Code so hooks and the MCP server stay current.
+ */
+async function refreshClaudeCodePlugin() {
+  const installed = await readJson(join(HOME, '.claude/plugins/installed_plugins.json'))
+    .then((d) => d.plugins?.['keybroker@keybroker']?.[0]?.version as string | undefined)
+    .catch(() => undefined);
+  if (!installed) return;
+  const bundled = await readJson(join(MARKETPLACE_DIR, 'plugins/keybroker/.claude-plugin/plugin.json')).then((d) => d.version as string);
+  if (installed === bundled) return;
+  const bin = await findBinary('claude');
+  if (!bin) return;
+  const env = await childEnv();
+  await run(bin, ['plugin', 'marketplace', 'update', 'keybroker'], { env });
+  await run(bin, ['plugin', 'update', 'keybroker@keybroker'], { env });
+}
+
 export async function ensureTools(sources: { cliBinary: string; marketplace: string; desktopExtension: string }) {
   mcpbPath = sources.desktopExtension;
   await mkdir(dirname(CLI_PATH), { recursive: true });
@@ -290,4 +308,5 @@ export async function ensureTools(sources: { cliBinary: string; marketplace: str
   await rm(MARKETPLACE_DIR, { recursive: true, force: true });
   await mkdir(dirname(MARKETPLACE_DIR), { recursive: true });
   await cp(sources.marketplace, MARKETPLACE_DIR, { recursive: true });
+  await refreshClaudeCodePlugin().catch((err) => console.error('Could not update the Claude Code plugin:', err));
 }
